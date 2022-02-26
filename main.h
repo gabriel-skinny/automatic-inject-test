@@ -1,0 +1,1 @@
+#define BASE_PATH "~/Projetos/gcb-cobranca/src/"
