@@ -38,16 +38,19 @@ int main(int argc, char *argv[]) {
 void readfilename(char * filename, char * globalfilename, char *filecontent) {  
   int fd;
   char command[100];
+  char filepath[100];
 
   printf("filename: %s\n\n", filename);
 
   buildCommand(filename, command);
-  execCommand(command, filecontent);
+  execCommand(command, filepath);
 /* 
   if((fd = open(filename, 'r')) == -1) {
     fprintf(stderr, "File not found");
     return;
   } */
+
+  printf("\nFile Path: %s \n\n", filepath);
 
   /* read(fd, filecontent, MAXFILEBUFFER); */
 }
@@ -78,14 +81,14 @@ void superstrcat(char *dest, char **argv, int n) {
 
 void execCommand(char * command, char *dest) {
   FILE *fp;
-
+  int c;
   if ((fp = popen(command, "r")) == NULL) {
     fprintf(stderr, "Faild to run command\n");
     return;
   }
 
-  while((fgets(dest, sizeof(dest), fp)) != NULL) {
-    printf("Dest: %s\n", dest);
+  while((c = fgetc(fp)) != EOF) {
+    *dest++ = c; 
   };
 
   pclose(fp);
