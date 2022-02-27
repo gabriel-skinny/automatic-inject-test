@@ -11,7 +11,7 @@
 
 
 void readfilename(char * filename, char * varname, char * varfilecontent);
-void strinvertconcat(char *dest, char *src);
+void strcatwithspace(char *dest, char *src);
 void execCommand(char * command, char *dest);
 void buildCommand(char *args, char *dest);
 void superstrcat(char *dest, char *argv[], int n);
@@ -53,29 +53,20 @@ void readfilename(char * filename, char * globalfilename, char *filecontent) {
   read(fd, filecontent, MAXFILEBUFFER);
 }
 
-void strinvertconcat(char *dest, char *s) {
-  while(*dest++ != '\0')
-    if (*dest == '\0') {
-      while(*s)
-        *dest++ = *s++;
-    }
-    *dest = '\0';
-}
+
 
 void buildCommand(char *args, char *dest) {
   char baseCommand[150] = "/bin/find ";
-  char endGrepCommand[] = " | /bin/grep -i ";
-  char *superstrcatargv[] = { BASE_PATH, endGrepCommand, args};  
+  char pipe[] = "|";
+  char endGrepCommand[] = "/bin/grep -i";
+  char *superstrcatargv[] = { BASE_PATH, pipe, endGrepCommand, args};  
 
-  superstrcat(baseCommand, superstrcatargv, 3);
+  superstrcat(baseCommand, superstrcatargv, 4);
+
+  printf("\nCOMMAND: %s\n", baseCommand);
 
   strcpy(dest, baseCommand);
 };
-
-void superstrcat(char *dest, char **argv, int n) {
-  while (n-- > 0) 
-    strcat(dest, *argv++);
-}
 
 void execCommand(char * command, char *dest) {
   FILE *fp;
@@ -92,4 +83,20 @@ void execCommand(char * command, char *dest) {
   pclose(fp);
   
   return;
+}
+
+void superstrcat(char *dest, char **argv, int n) {
+  while (n-- > 0) 
+    strcatwithspace(dest, *argv++);
+}
+
+void strcatwithspace(char *dest, char *s) {
+  while(*dest++ != '\0')
+    if (*dest == '\0') {
+      *dest++ = ' ';
+      while(*s)
+        *dest++ = *s++;
+    }
+    *dest++ = ' ';
+    *dest = '\0';
 }
