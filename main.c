@@ -14,6 +14,7 @@ void readfilename(char * filename, char * varname, char * varfilecontent);
 void strinvertconcat(char *dest, char *src);
 void execCommand(char * command, char *dest);
 void buildCommand(char *args, char *dest);
+void superstrcat(char *dest, char *argv[], int n);
 
 int main(int argc, char *argv[]) {
   char *filename = (char * )malloc(MAXFILENAME);
@@ -31,8 +32,6 @@ int main(int argc, char *argv[]) {
     }   
   }
 
-  printf("%s", filecontent);
-
   return 0;
 }
 
@@ -40,12 +39,10 @@ void readfilename(char * filename, char * globalfilename, char *filecontent) {
   int fd;
   char command[100];
 
-  printf("filename: %s", filename);
+  printf("filename: %s\n\n", filename);
 
   buildCommand(filename, command);
   execCommand(command, filecontent);
-
-  strinvertconcat(rigthfilepath, filename);
 /* 
   if((fd = open(filename, 'r')) == -1) {
     fprintf(stderr, "File not found");
@@ -66,13 +63,18 @@ void strinvertconcat(char *dest, char *s) {
 
 void buildCommand(char *args, char *dest) {
   char baseCommand[150] = "/bin/find ";
-  char endGrepCommand[] = "| /bin/grep -i ";
-  strcat(baseCommand, BASE_PATH);
-  strcat(baseCommand, endGrepCommand);
-  strcat(baseCommand, args);
+  char endGrepCommand[] = " | /bin/grep -i ";
+  char *superstrcatargv[] = { BASE_PATH, endGrepCommand, args};  
+
+  superstrcat(baseCommand, superstrcatargv, 3);
 
   strcpy(dest, baseCommand);
 };
+
+void superstrcat(char *dest, char **argv, int n) {
+  while (n-- > 0) 
+    strcat(dest, *argv++);
+}
 
 void execCommand(char * command, char *dest) {
   FILE *fp;
