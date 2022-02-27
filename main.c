@@ -7,7 +7,7 @@
 #include "main.h"
 
 #define MAXFILENAME 100
-#define MAXFILEBUFFER 500
+#define MAXFILEBUFFER 1200
 
 
 void readfilename(char * filename, char * varname, char * varfilecontent);
@@ -32,6 +32,8 @@ int main(int argc, char *argv[]) {
     }   
   }
 
+  printf("\n\nFILE CONTENT: %s\n\n", filecontent);
+
   return 0;
 }
 
@@ -40,19 +42,15 @@ void readfilename(char * filename, char * globalfilename, char *filecontent) {
   char command[100];
   char filepath[100];
 
-  printf("filename: %s\n\n", filename);
-
   buildCommand(filename, command);
   execCommand(command, filepath);
-/* 
-  if((fd = open(filename, 'r')) == -1) {
+
+  if((fd = open(filepath, 'r')) == -1) {
     fprintf(stderr, "File not found");
     return;
-  } */
+  }
 
-  printf("\nFile Path: %s \n\n", filepath);
-
-  /* read(fd, filecontent, MAXFILEBUFFER); */
+  read(fd, filecontent, MAXFILEBUFFER);
 }
 
 void strinvertconcat(char *dest, char *s) {
@@ -87,7 +85,7 @@ void execCommand(char * command, char *dest) {
     return;
   }
 
-  while((c = fgetc(fp)) != EOF) {
+  while((c = fgetc(fp)) != EOF && c != '\n') {
     *dest++ = c; 
   };
 
