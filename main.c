@@ -47,6 +47,8 @@ int main(int argc, char *argv[]) {
     printf("\n Constructor lines: %s", constructorlines[i]);
   }
 
+  printf("\n\n\n");
+
   return 0;
 }
 
@@ -98,9 +100,8 @@ void getcontructorlines(char * filecontent, char *dest[]) {
         dest[destCounter][k] = '\0';
         destCounter++;
         k = 0;
-      }
-      
-      }
+      }  
+    }
   }
 }
 
