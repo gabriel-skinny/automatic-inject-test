@@ -8,7 +8,7 @@
 #include <ctype.h>
 
 #define MAXFILENAME 100
-#define MAXFILEBUFFER 1200
+#define MAXFILEBUFFER 1500
 #define MAXCONSTRUCTORLINES 20
 #define MAXCONSTRUCTORSIZELINES 100
 #define MAXVAR 10
@@ -53,14 +53,13 @@ int main(int argc, char *argv[]) {
 
   printf("\n\nFILE CONTENT: %s\n\n", filecontent);
   getcontructorlines(filecontent, constructorlines);
-  
-  for (int i = 0; i < 6; i++) {
-    printf("\n Constructor lines: %s", constructorlines[i]);
-  }
 
   assingvariables(constructorlines, vars);
 
-  printf("\n\n Var type: %s, Var name: %s", (*vars) -> type, (*vars) -> name);
+  
+   for (int i = 0; i < 3; i++) {
+    printf("\n\n Var name: %s, Var type: %s", (vars[i]) -> name, (vars[i]) -> type);
+  }  
 
   printf("\n\n\n");
 
@@ -127,38 +126,56 @@ void assingvariables(char *constructorlines[], Variables* destVar[]) {
       getvariablename(constructorlines[++i], name);
       (*destVar) -> type = "repository"; 
       (*destVar) -> name = name;
+      printf("\nRepository name in var: %s\n", (*destVar) -> name);
+      *destVar++;
     }
+
     else if (strstr(constructorlines[i], "UseCase")) {
       getvariablename(constructorlines[++i], name);
       (*destVar) -> type = "service"; 
       (*destVar) -> name = name;
+      *destVar++;
+    }
+
+    else if (strstr(constructorlines[i], "Factory")) {
+      getvariablename(constructorlines[++i], name);
+      (*destVar) -> type = "factory"; 
+      (*destVar) -> name = name;
+      *destVar++;
     }
 
     else if (strstr(constructorlines[i], "Helper")) {
       getvariablename(constructorlines[++i], name);
       (*destVar) -> type = "helper"; 
       (*destVar) -> name = name;
+      *destVar++;
     }
   }
 }
 
 void getvariablename(char *variableLine, char *destname) {
-  char limit[] = "readonly";
+  char *limit = (char *) malloc(20);
   int limitCount = 0;
  
-  while(*variableLine != '\0') {
-     printf("\nLine here %c \n\n", *variableLine);
-    if (*variableLine++ == limit[limitCount]) {
+  if (strstr(variableLine, "readonly")) limit = "readonly"; else limit = "private";
+
+  for(int i = 0; i < strlen(variableLine); i++) {
+    if (variableLine[i] == limit[limitCount]) 
       limitCount++;
-    }
+    else 
+      limitCount = 0;
+    
 
     if (limitCount == strlen(limit)) {
-      while(*variableLine != ':') 
-        *destname++ = ++*variableLine;
+      while(variableLine[i] != ':') 
+        *destname++ = variableLine[++i];
       
-      *destname = '\0';
+      *--destname = '\0';
+      break;
     }
   }
+
+  
 }
 
 void buildCommand(char *args, char *dest) {
