@@ -12,13 +12,14 @@
 #define MAXCONSTRUCTORLINES 20
 #define MAXCONSTRUCTORSIZELINES 100
 #define MAXVAR 10
+#define MAXVARNAME 200
 
 typedef struct {
   char *type;
   char *name;
 } Variables;
 
-void readfilename(char * filename, char * varname, char * varfilecontent);
+void readfile(char * filename, char * varname, char * varfilecontent);
 void strcatwithspace(char *dest, char *src);
 void execCommand(char *command, char *dest);
 void buildCommand(char *args, char *dest);
@@ -37,7 +38,7 @@ int main(int argc, char *argv[]) {
   char *filename = (char * )malloc(MAXFILENAME);
   char *filecontent = (char * )malloc(MAXFILEBUFFER);
   char *constructorlines[MAXCONSTRUCTORLINES];
-  char *sut = (char * )malloc(MAXFILENAME);
+  char *sut = (char * )malloc(MAXVARNAME);
   char *dependencies = (char * )malloc(MAXFILENAME);
   Variables *vars[MAXVAR];
 
@@ -52,7 +53,7 @@ int main(int argc, char *argv[]) {
   while(--argc > 0 && *++argv) {    
     if (*argv[0] == '-'){
       if (strncmp(*argv, "-file", sizeof *argv) == 0)
-        readfilename(*++argv, filename, filecontent);  
+        readfile(*++argv, filename, filecontent);  
     }   
   }
 
@@ -64,6 +65,12 @@ int main(int argc, char *argv[]) {
 
   printf("\n Sut is: %s \n", sut);
 
+  int c = 0;
+   while ((vars[c]) -> name != NULL) {
+    printf("\n\n Var name: %s, Var type: %s", (vars[c]) -> name, (vars[c]) -> type);
+    c++;
+  }  
+
   makeDependencieinjection(sut, vars, dependencies);
 
   printf("\n Dependencies: %s", dependencies);
@@ -73,7 +80,7 @@ int main(int argc, char *argv[]) {
   return 0;
 }
 
-void readfilename(char * filename, char * globalfilename, char *filecontent) {  
+void readfile(char * filename, char * globalfilename, char *filecontent) {  
   int fd;
   char command[100];
   char filepath[100];
@@ -83,7 +90,7 @@ void readfilename(char * filename, char * globalfilename, char *filecontent) {
 
   if((fd = open(filepath, 'r')) == -1) {
     fprintf(stderr, "File not found");
-    return;
+    exit(1);
   }
 
   read(fd, filecontent, MAXFILEBUFFER);
@@ -129,7 +136,7 @@ void getcontructorlines(char * filecontent, char *dest[]) {
 }
 
 void getSut(char *filecontent, char *sut) {
-  char *limit = "class";
+  char *limit = "export class";
   int limitCount = 0;
 
   while (*filecontent) {
@@ -143,6 +150,9 @@ void getSut(char *filecontent, char *sut) {
       int sutlimitCount = 0;
 
       while(*filecontent != '{') {
+
+        if (*filecontent == '\n') break;
+
         *sut++ = *++filecontent;
         
         if (*filecontent == sutlimit[sutlimitCount]) {
@@ -158,7 +168,7 @@ void getSut(char *filecontent, char *sut) {
         }
         
       }
-      *(sut - 2) = '\0';
+      *(sut - 1) = '\0';
       break; 
     }
   }
