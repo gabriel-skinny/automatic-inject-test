@@ -28,12 +28,14 @@ void allocarrayofpointer(char *arg[]);
 void assingvariables(char *constructorlines[], Variables* destVar[]);
 void getvariablename(char *variableLine, char *destname);
 void allocarrayofstrucvar(Variables *argv[]);
+void getSut(char *filecontent, char *sut);
 
 
 int main(int argc, char *argv[]) {
   char *filename = (char * )malloc(MAXFILENAME);
   char *filecontent = (char * )malloc(MAXFILEBUFFER);
   char *constructorlines[MAXCONSTRUCTORLINES];
+  char *sut = (char * )malloc(MAXFILENAME);
   Variables *vars[MAXVAR];
 
   allocarrayofstrucvar(vars);
@@ -54,9 +56,11 @@ int main(int argc, char *argv[]) {
   printf("\n\nFILE CONTENT: %s\n\n", filecontent);
   getcontructorlines(filecontent, constructorlines);
 
+  getSut(filecontent, sut);
   assingvariables(constructorlines, vars);
 
-  
+  printf("\n Sut is: %s \n", sut);
+
    for (int i = 0; i < 3; i++) {
     printf("\n\n Var name: %s, Var type: %s", (vars[i]) -> name, (vars[i]) -> type);
   }  
@@ -121,10 +125,45 @@ void getcontructorlines(char * filecontent, char *dest[]) {
   }
 }
 
+void getSut(char *filecontent, char *sut) {
+  char *limit = "class";
+  int limitCount = 0;
+
+  while (*filecontent) {
+    if (*filecontent++ == limit[limitCount]) 
+      limitCount++;
+    else 
+      limitCount = 0;
+
+    if (limitCount == strlen(limit)) {
+      char *sutlimit = "implements";
+      int sutlimitCount = 0;
+
+      while(*filecontent != '{') {
+        *sut++ = *++filecontent;
+        
+        if (*filecontent == sutlimit[sutlimitCount]) {
+          sutlimitCount++;
+        }
+        else{
+           sutlimitCount = 0;
+        }
+
+        if (sutlimitCount == strlen(sutlimit)) {
+          *(sut - sutlimitCount) = '\0';
+          break;        
+        }
+        
+      }
+      break; 
+    }
+  }
+}
+
 void assingvariables(char *constructorlines[], Variables* destVar[]) {
   for (int i = 0; i < MAXCONSTRUCTORLINES && constructorlines[i]; i++){
     char *name = (char *)malloc(MAXCONSTRUCTORSIZELINES);
-    
+
     if (strstr(constructorlines[i], "Repository")){
       getvariablename(constructorlines[++i], name);
       (*destVar) -> type = "repository"; 
