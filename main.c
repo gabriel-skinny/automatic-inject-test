@@ -122,13 +122,13 @@ void getcontructorlines(char * filecontent, char *dest[]) {
 }
 
 void assingvariables(char *constructorlines[], Variables* destVar[]) {
-  char *name = (char *)malloc(MAXCONSTRUCTORSIZELINES);
   for (int i = 0; i < MAXCONSTRUCTORLINES && constructorlines[i]; i++){
+    char *name = (char *)malloc(MAXCONSTRUCTORSIZELINES);
+    
     if (strstr(constructorlines[i], "Repository")){
       getvariablename(constructorlines[++i], name);
       (*destVar) -> type = "repository"; 
       (*destVar) -> name = name;
-      printf("\nRepository name in var: %s\n", (*destVar) -> name);
       *destVar++;
     }
 
