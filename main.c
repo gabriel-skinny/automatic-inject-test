@@ -64,10 +64,6 @@ int main(int argc, char *argv[]) {
 
   printf("\n Sut is: %s \n", sut);
 
-   for (int i = 0; i < 3; i++) {
-    printf("\n\n Var name: %s, Var type: %s", (vars[i]) -> name, (vars[i]) -> type);
-  }  
-
   makeDependencieinjection(sut, vars, dependencies);
 
   printf("\n Dependencies: %s", dependencies);
@@ -162,6 +158,7 @@ void getSut(char *filecontent, char *sut) {
         }
         
       }
+      *(sut - 2) = '\0';
       break; 
     }
   }
@@ -205,6 +202,20 @@ void assingvariables(char *constructorlines[], Variables* destVar[]) {
     else if (strstr(constructorlines[i], "UseCase")) {
       getvariablename(constructorlines[++i], name);
       (*destVar) -> type = "service"; 
+      (*destVar) -> name = name;
+      *destVar++;
+    }
+
+    else if (strstr(constructorlines[i], "Format")) {
+      getvariablename(constructorlines[++i], name);
+      (*destVar) -> type = "helper"; 
+      (*destVar) -> name = name;
+      *destVar++;
+    }
+
+    else if (strstr(constructorlines[i], "Verify")) {
+      getvariablename(constructorlines[++i], name);
+      (*destVar) -> type = "helper"; 
       (*destVar) -> name = name;
       *destVar++;
     }
