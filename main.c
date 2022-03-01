@@ -13,25 +13,32 @@
 #define MAXCONSTRUCTORSIZELINES 100
 #define MAXVAR 10
 #define MAXVARNAME 200
+#define MAXFILEPATH 200
+#define MAXTESTSUITSIZE 1200
 
 typedef struct {
   char *type;
   char *name;
 } Variables;
 
-void readfile(char * filename, char * varname, char * varfilecontent);
+void readfile(char * filename, char * varname, char * varfilecontent,  char *destfilepath);
 void strcatwithspace(char *dest, char *src);
 void execCommand(char *command, char *dest);
 void buildCommand(char *args, char *dest);
 void superstrcat(char *dest, char *argv[], int n);
 void getcontructorlines(char *filecontent, char *dest[]);
 void allocarrayofpointer(char *arg[]);
-void assingvariables(char *constructorlines[], Variables* destVar[]);
+void getdependencies(char *constructorlines[], Variables* destVar[]);
 void getvariablename(char *variableLine, char *destname);
 void allocarrayofstrucvar(Variables *argv[]);
 void getSut(char *filecontent, char *sut);
 void makeDependencieinjection(char *sut, Variables *vars[], char *dest);
 void transformVariablesinClasses(Variables *vars[], char *dest);
+void assingvariables(char *sut, Variables *vars[], char *dest);
+void makeinterface(char *varname, char *dest);
+void maketestsuit(char* sut, Variables *vars[], char *dest);
+void writetestinfile(char *testsuit, char *sutfilepath, char*sut);
+
 
 
 int main(int argc, char *argv[]) {
@@ -39,7 +46,9 @@ int main(int argc, char *argv[]) {
   char *filecontent = (char * )malloc(MAXFILEBUFFER);
   char *constructorlines[MAXCONSTRUCTORLINES];
   char *sut = (char * )malloc(MAXVARNAME);
-  char *dependencies = (char * )malloc(MAXFILENAME);
+  char *testsuit = (char *) malloc(MAXTESTSUITSIZE);
+  char *filepath = (char *) malloc(MAXFILEPATH);
+
   Variables *vars[MAXVAR];
 
   allocarrayofstrucvar(vars);
@@ -53,7 +62,7 @@ int main(int argc, char *argv[]) {
   while(--argc > 0 && *++argv) {    
     if (*argv[0] == '-'){
       if (strncmp(*argv, "-file", sizeof *argv) == 0)
-        readfile(*++argv, filename, filecontent);  
+        readfile(*++argv, filename, filecontent, filepath);  
     }   
   }
 
@@ -61,7 +70,7 @@ int main(int argc, char *argv[]) {
   getcontructorlines(filecontent, constructorlines);
 
   getSut(filecontent, sut);
-  assingvariables(constructorlines, vars);
+  getdependencies(constructorlines, vars);
 
   printf("\n Sut is: %s \n", sut);
 
@@ -71,22 +80,26 @@ int main(int argc, char *argv[]) {
     c++;
   }  
 
-  makeDependencieinjection(sut, vars, dependencies);
+  maketestsuit(sut, vars, testsuit);
 
-  printf("\n Dependencies: %s", dependencies);
+  printf("\n Test: %s", testsuit);
+
+  writetestinfile(testsuit, filepath, sut);
 
   printf("\n\n\n");
 
   return 0;
 }
 
-void readfile(char * filename, char * globalfilename, char *filecontent) {  
+void readfile(char * filename, char * globalfilename, char *filecontent, char *destfilepath) {  
   int fd;
   char command[100];
   char filepath[100];
 
   buildCommand(filename, command);
   execCommand(command, filepath);
+
+  strcpy(destfilepath,filepath);
 
   if((fd = open(filepath, 'r')) == -1) {
     fprintf(stderr, "File not found");
@@ -181,6 +194,64 @@ void makeDependencieinjection(char *sut, Variables *vars[], char *dest) {
   sprintf(dest, "new %s(%s)", sut, alldependencies);
 }
 
+void assingvariables(char *sut, Variables *vars[], char *dest) {
+  char *temp = (char *) malloc(MAXVARNAME);
+
+  char *sutinterface = (char *) malloc(MAXVARNAME);
+  sprintf(temp, "let sut: %s = new %s()\n", sutinterface, sut);
+  strcat(dest, temp);
+
+  while ((*vars) -> name != NULL) {
+    char *interface = (char *) malloc(MAXVARNAME);
+    makeinterface((*vars) -> name, interface);
+
+    sprintf(temp, "let %s: %s = new %s()\n", (*vars++) -> name, interface, (*vars) -> name);
+    strcat(dest, temp);
+  }
+}
+
+void maketestsuit(char* sut, Variables *vars[], char *dest) {
+  char *dependencies = (char * )malloc(MAXFILENAME);
+  char *varlines = (char * )malloc(500);
+
+  assingvariables(sut, vars, varlines);
+  makeDependencieinjection(sut, vars, dependencies);
+
+  sprintf(dest, "describe(%s, () => {\n\n %s\n beforeAll(() => {\n\n %s\n})\n})", sut, varlines, dependencies);
+}
+
+void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
+  int fd, len;
+  len = strlen(sutfilepath);
+
+  while(sutfilepath[len--]) {
+    if (sutfilepath[len] == '/') 
+      sutfilepath[len] = '\0';
+  }
+
+  char *testfilepath = (char *) malloc(MAXVARNAME);
+
+  sprintf(testfilepath, "%s/tests/%s.spec.ts", sutfilepath, sut);
+
+  printf("\nTest writen is : %s", testfilepath);
+
+  if((fd = open(testfilepath, 'w')) == -1) {
+    fprintf(stderr, "Could not create file");
+    exit(1);
+  }
+
+  printf("\nTest writen is : %s", testfilepath);
+
+  write(fd, testsuit, len);
+
+  close(fd);
+}
+
+void makeinterface(char *varname, char *dest) {
+  sprintf(dest, "I%s", varname);
+  dest[1] = dest[1] - ('a' - 'A');
+}
+
 void transformVariablesinClasses(Variables *vars[], char *dest) {
   while((*vars) -> name != NULL) {
     char *classCapitalized = (char *) malloc(100);
@@ -198,7 +269,7 @@ void transformVariablesinClasses(Variables *vars[], char *dest) {
   dest[strlen(dest) - 1] = '\0';
 }
 
-void assingvariables(char *constructorlines[], Variables* destVar[]) {
+void getdependencies(char *constructorlines[], Variables* destVar[]) {
   for (int i = 0; i < MAXCONSTRUCTORLINES && constructorlines[i]; i++){
     char *name = (char *)malloc(MAXCONSTRUCTORSIZELINES);
 
