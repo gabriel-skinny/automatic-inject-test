@@ -80,6 +80,8 @@ void readfilename(char * filename, char * globalfilename, char *filecontent) {
   }
 
   read(fd, filecontent, MAXFILEBUFFER);
+
+  close(fd);
 }
 
 void getcontructorlines(char * filecontent, char *dest[]) {
@@ -178,15 +180,12 @@ void getvariablename(char *variableLine, char *destname) {
   
 }
 
-void buildCommand(char *args, char *dest) {
+void buildCommand(char *arg, char *dest) {
   char baseCommand[150] = "/bin/find ";
   char pipe[] = "|";
   char endGrepCommand[] = "/bin/grep -i";
-  char *superstrcatargv[] = { BASE_PATH, pipe, endGrepCommand, args};  
 
-  superstrcat(baseCommand, superstrcatargv, 4);
-
-  strcpy(dest, baseCommand);
+  sprintf(dest, "%s %s %s %s %s", baseCommand, BASE_PATH, pipe, endGrepCommand, arg);
 };
 
 void execCommand(char * command, char *dest) {
