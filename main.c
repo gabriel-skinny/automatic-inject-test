@@ -29,6 +29,8 @@ void assingvariables(char *constructorlines[], Variables* destVar[]);
 void getvariablename(char *variableLine, char *destname);
 void allocarrayofstrucvar(Variables *argv[]);
 void getSut(char *filecontent, char *sut);
+void makeDependencieinjection(char *sut, Variables *vars[], char *dest);
+void transformVariablesinClasses(Variables *vars[], char *dest);
 
 
 int main(int argc, char *argv[]) {
@@ -36,6 +38,7 @@ int main(int argc, char *argv[]) {
   char *filecontent = (char * )malloc(MAXFILEBUFFER);
   char *constructorlines[MAXCONSTRUCTORLINES];
   char *sut = (char * )malloc(MAXFILENAME);
+  char *dependencies = (char * )malloc(MAXFILENAME);
   Variables *vars[MAXVAR];
 
   allocarrayofstrucvar(vars);
@@ -64,6 +67,10 @@ int main(int argc, char *argv[]) {
    for (int i = 0; i < 3; i++) {
     printf("\n\n Var name: %s, Var type: %s", (vars[i]) -> name, (vars[i]) -> type);
   }  
+
+  makeDependencieinjection(sut, vars, dependencies);
+
+  printf("\n Dependencies: %s", dependencies);
 
   printf("\n\n\n");
 
@@ -160,6 +167,30 @@ void getSut(char *filecontent, char *sut) {
   }
 }
 
+void makeDependencieinjection(char *sut, Variables *vars[], char *dest) {
+  char *alldependencies = (char *)malloc(200);
+  transformVariablesinClasses(vars, alldependencies);
+
+  sprintf(dest, "new %s(%s)", sut, alldependencies);
+}
+
+void transformVariablesinClasses(Variables *vars[], char *dest) {
+  while((*vars) -> name != NULL) {
+    char *classCapitalized = (char *) malloc(100);
+    strcpy(classCapitalized, (*vars) -> name);
+    classCapitalized[0] = classCapitalized[0] - ('a' - 'A');  
+    
+    char *class = (char *) malloc(100);
+
+    sprintf(class, "new %s(),", classCapitalized);
+    strcat(dest, class);
+    
+    *vars++;
+  }
+
+  dest[strlen(dest) - 1] = '\0';
+}
+
 void assingvariables(char *constructorlines[], Variables* destVar[]) {
   for (int i = 0; i < MAXCONSTRUCTORLINES && constructorlines[i]; i++){
     char *name = (char *)malloc(MAXCONSTRUCTORSIZELINES);
@@ -208,6 +239,7 @@ void getvariablename(char *variableLine, char *destname) {
     
 
     if (limitCount == strlen(limit)) {
+      i++;
       while(variableLine[i] != ':') 
         *destname++ = variableLine[++i];
       
