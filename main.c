@@ -68,24 +68,14 @@ int main(int argc, char *argv[]) {
     }   
   }
 
-  printf("\n\nFILE CONTENT: %s\n\n", filecontent);
   getcontructorlines(filecontent, constructorlines);
 
   getSut(filecontent, sut);
   getdependencies(constructorlines, vars);
 
-  printf("\n Sut is: %s \n", sut);
-
-  int c = 0;
-   while ((vars[c]) -> name != NULL) {
-    printf("\n\n Var name: %s, Var type: %s", (vars[c]) -> name, (vars[c]) -> type);
-    c++;
-  }  
+  printf("\nSut is: %s \n", sut);
 
   maketestsuit(sut, vars, testsuit);
-
-  printf("\n Test: %s", testsuit);
-
   writetestinfile(testsuit, filepath, sut);
 
   printf("\n\n\n");
@@ -247,7 +237,7 @@ void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
     exit(1);
   }
 
-  printf("\nTest writen is : %s", testfilepath);
+  printf("\nTest writen in : %s", testfilepath);
 
   write(fd, testsuit, strlen(testsuit));
 
