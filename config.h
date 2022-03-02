@@ -1,1 +1,1 @@
-#define BASE_PATH "~/Projetos/gcb-cobranca/src/"
+#define BASE_PATH "~/projects/src"
