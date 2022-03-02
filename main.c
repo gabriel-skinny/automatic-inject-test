@@ -4,7 +4,7 @@
 #include "syscall.h"
 #include <fcntl.h>
 #include <unistd.h>
-#include "main.h"
+#include "config.h"
 #include <ctype.h>
 #include <errno.h>
 #include <sys/stat.h>
