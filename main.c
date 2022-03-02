@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include "main.h"
 #include <ctype.h>
+#include <errno.h>
+#include <sys/stat.h>
 
 #define MAXFILENAME 100
 #define MAXFILEBUFFER 1500
@@ -222,27 +224,38 @@ void maketestsuit(char* sut, Variables *vars[], char *dest) {
 
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
   int fd, len;
+  char *testfilepath = (char *) malloc(MAXVARNAME);
+  char *pointertotest = testfilepath;
+
   len = strlen(sutfilepath);
 
-  while(sutfilepath[len--]) {
-    if (sutfilepath[len] == '/') 
-      sutfilepath[len] = '\0';
+  while(sutfilepath[--len]) {
+    if (sutfilepath[len] == '/') {
+       sutfilepath[len] = '\0';
+      while(*sutfilepath != '\0') 
+        *pointertotest++ = *sutfilepath++;
+    break;
+    }
   }
 
-  char *testfilepath = (char *) malloc(MAXVARNAME);
+  sut[strlen(sut) -1] = '\0';
+  sprintf(testfilepath, "%s/tests/%s.spec.ts", testfilepath, sut);
 
-  sprintf(testfilepath, "%s/tests/%s.spec.ts", sutfilepath, sut);
 
-  printf("\nTest writen is : %s", testfilepath);
-
-  if((fd = open(testfilepath, 'w')) == -1) {
-    fprintf(stderr, "Could not create file");
+  if((fd = creat(testfilepath, 'w')) == -1) {
+    fprintf(stderr, "Error creating file: %s\n", strerror(errno));
     exit(1);
   }
 
   printf("\nTest writen is : %s", testfilepath);
 
-  write(fd, testsuit, len);
+  write(fd, testsuit, strlen(testsuit));
+
+  unsigned int mode = 00700;
+  if (fchmod(fd, mode) == -1) {
+    fprintf(stderr, "Could not change file permission: %s\n", strerror(errno));
+    exit(1);
+  }
 
   close(fd);
 }
