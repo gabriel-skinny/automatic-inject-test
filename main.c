@@ -190,6 +190,7 @@ void assingvariables(char *sut, Variables *vars[], char *dest) {
   char *temp = (char *) malloc(MAXVARNAME);
 
   char *sutinterface = (char *) malloc(MAXVARNAME);
+  makeinterface(sut, sutinterface);
   sprintf(temp, "let sut: %s = new %s()\n", sutinterface, sut);
   strcat(dest, temp);
 
@@ -209,7 +210,7 @@ void maketestsuit(char* sut, Variables *vars[], char *dest) {
   assingvariables(sut, vars, varlines);
   makeDependencieinjection(sut, vars, dependencies);
 
-  sprintf(dest, "describe(%s, () => {\n\n %s\n beforeAll(() => {\n\n %s\n})\n})", sut, varlines, dependencies);
+  sprintf(dest, "describe(%s, () => {\n%s\n beforeAll(() => {\n%s\n}) \n})", sut, varlines, dependencies);
 }
 
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
@@ -259,7 +260,9 @@ void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
 
 void makeinterface(char *varname, char *dest) {
   sprintf(dest, "I%s", varname);
-  dest[1] = dest[1] - ('a' - 'A');
+  if (dest[1] >= 'a' && dest[1] <= 'Z') 
+    dest[1] = dest[1] - ('a' - 'A');
+  
 }
 
 void transformVariablesinClasses(Variables *vars[], char *dest) {
