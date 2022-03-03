@@ -35,7 +35,7 @@ void getvariablename(char *variableLine, char *destname);
 void allocarrayofstrucvar(Variables *argv[]);
 void getSut(char *filecontent, char *sut);
 void makeDependencieinjection(char *sut, Variables *vars[], char *dest);
-void transformVariablesinClasses(Variables *vars[], char *dest);
+void formatDependencies(Variables *vars[], char *dest);
 void assingvariables(char *sut, Variables *vars[], char *dest);
 void makeinterface(char *varname, char *dest);
 void maketestsuit(char* sut, Variables *vars[], char *dest);
@@ -181,9 +181,9 @@ void getSut(char *filecontent, char *sut) {
 
 void makeDependencieinjection(char *sut, Variables *vars[], char *dest) {
   char *alldependencies = (char *)malloc(200);
-  transformVariablesinClasses(vars, alldependencies);
+  formatDependencies(vars, alldependencies);
 
-  sprintf(dest, "sut = new %s(%s)", sut, alldependencies);
+  sprintf(dest, "sut = new %s(%s);", sut, alldependencies);
 }
 
 void assingvariables(char *sut, Variables *vars[], char *dest) {
@@ -265,16 +265,16 @@ void makeinterface(char *varname, char *dest) {
   
 }
 
-void transformVariablesinClasses(Variables *vars[], char *dest) {
+void formatDependencies(Variables *vars[], char *dest) {
   while((*vars) -> name != NULL) {
-    char *classCapitalized = (char *) malloc(100);
+   /*  char *classCapitalized = (char *) malloc(100);
     strcpy(classCapitalized, (*vars) -> name);
-    classCapitalized[0] = classCapitalized[0] - ('a' - 'A');  
+    classCapitalized[0] = classCapitalized[0] - ('a' - 'A');   */
     
-    char *class = (char *) malloc(100);
+    char *formated = (char *) malloc(100);
 
-    sprintf(class, "new %s(),", classCapitalized);
-    strcat(dest, class);
+    sprintf(formated, "%s,", (*vars) -> name);
+    strcat(dest, formated);
     
     *vars++;
   }
