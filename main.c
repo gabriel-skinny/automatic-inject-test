@@ -215,7 +215,9 @@ void maketestsuit(char* sut, Variables *vars[], char *dest) {
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
   int fd, len;
   char *testfilepath = (char *) malloc(MAXVARNAME);
-  char *pointertotest = testfilepath;
+  char *testpath = (char *) malloc(MAXVARNAME);
+  char *pointertotest = testpath;
+  unsigned int mode = 00777;
 
   len = strlen(sutfilepath);
 
@@ -229,10 +231,16 @@ void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
   }
 
   sut[strlen(sut) -1] = '\0';
-  sprintf(testfilepath, "%s/tests/%s.spec.ts", testfilepath, sut);
+  sprintf(testpath, "%s/tests", testpath, sut);
+  sprintf(testfilepath, "%s/%s.spec.ts", testpath, sut);
 
-
+  retry:
   if((fd = creat(testfilepath, 'w')) == -1) {
+    if (errno == 2) {
+      if (mkdir(testpath, mode) == -1) 
+        fprintf(stderr, "Error creating directory: %s\n", strerror(errno));
+      else  goto retry;
+    }
     fprintf(stderr, "Error creating file: %s\n", strerror(errno));
     exit(1);
   }
@@ -241,7 +249,6 @@ void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
 
   write(fd, testsuit, strlen(testsuit));
 
-  unsigned int mode = 00700;
   if (fchmod(fd, mode) == -1) {
     fprintf(stderr, "Could not change file permission: %s\n", strerror(errno));
     exit(1);
