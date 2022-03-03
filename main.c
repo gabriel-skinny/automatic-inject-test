@@ -210,7 +210,7 @@ void maketestsuit(char* sut, Variables *vars[], char *dest) {
   assingvariables(sut, vars, varlines);
   makeDependencieinjection(sut, vars, dependencies);
 
-  sprintf(dest, "describe(%s, () => {\n%s\n  beforeAll(() => {\n   %s\n  }); \n});", sut, varlines, dependencies);
+  sprintf(dest, "describe('%s', () => {\n%s\n  beforeAll(() => {\n   %s\n  }); \n});", sut, varlines, dependencies);
 }
 
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
