@@ -22,7 +22,7 @@ A CLI program that gets a file name and inject all needed dependencies to test a
 
 ## Features to implement
   - Flag to use no types
-  - With grep return multiple files the user should chose witch one it want to test
+  - If grep return multiple files the user should chose witch one it want to test
   - If a test file is already created with that name it should throw an error
   - If the constructor does not have inject(nestjs like injection) it should not skip for the next line to get the depedencie
   - Make all the imports based on sut file path and varible types
