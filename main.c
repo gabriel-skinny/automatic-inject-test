@@ -238,9 +238,14 @@ void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
   retry:
   if((fd = creat(testfilepath, 'w')) == -1) {
     if (errno == 2) {
+      printf("\nNo test directory found in: %s\n", testfilepath);
+      printf("\nCreating test directory...\n");
       if (mkdir(testpath, mode) == -1) 
         fprintf(stderr, "Error creating directory: %s\n", strerror(errno));
-      else  goto retry;
+      else  {
+        printf("\nDirectory created \n");
+        goto retry;
+      };
     }
     fprintf(stderr, "Error creating file: %s\n", strerror(errno));
     exit(1);
