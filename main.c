@@ -351,7 +351,7 @@ void buildCommand(char *arg, char *dest) {
   char pipe[] = "|";
   char endGrepCommand[] = "/bin/grep -i";
 
-  sprintf(dest, "%s %s %s %s %s", baseCommand, BASE_PATH, pipe, endGrepCommand, arg);
+  sprintf(dest, "%s %s %s %s %s*", baseCommand, BASE_PATH, pipe, endGrepCommand, arg);
 };
 
 void execCommand(char * command, char *dest) {
