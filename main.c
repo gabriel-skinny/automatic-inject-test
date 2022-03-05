@@ -40,6 +40,8 @@ void assingvariables(char *sut, Variables *vars[], char *dest);
 void makeinterface(char *varname, char *dest);
 void maketestsuit(char* sut, Variables *vars[], char *dest);
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut);
+void makeimport(Variables *vars[], char *dest);
+void findpathforvar(char *name, char *dest);
 
 
 
@@ -203,14 +205,64 @@ void assingvariables(char *sut, Variables *vars[], char *dest) {
   }
 }
 
+void makeimport(Variables *vars[], char *dest) {
+  while((*vars) -> name != NULL) {
+    char *import = (char *) malloc(MAXFILEPATH);
+    char *interface = (char *) malloc(MAXVARNAME);
+    char *pathtointerface = (char *) malloc(MAXFILEPATH);
+
+    makeinterface((*vars) -> name, interface);
+    findpathforvar((*vars) -> name, pathtointerface);
+
+    sprintf(import, "import { %s } from 'src/%s';\n", interface, pathtointerface);
+    strcat(dest, import);
+
+    free(import);
+    free(interface);
+    free(pathtointerface);
+
+    *vars++;
+  }
+}
+
+void findpathforvar(char *name, char *dest) {
+  char *base_src = "/src/";
+  int limit;
+  char *command = (char *) malloc(MAXVARNAME);
+  char *rigth_path = (char *) malloc(MAXFILEPATH);
+
+  buildCommand(name, command);
+  execCommand(command, rigth_path);
+  printf("\n Path: %s\n", rigth_path);
+
+  limit = 0;
+
+  
+  while(*rigth_path != '\0') {
+    if (*rigth_path++ == base_src[limit])
+      limit++;
+    else limit = 0;
+    if (limit == strlen(base_src)) {
+      while(*rigth_path != '\0')
+        *dest++ = *rigth_path++;
+
+      *dest = '\0';
+      break;
+    }
+  }
+   
+}
+
 void maketestsuit(char* sut, Variables *vars[], char *dest) {
   char *dependencies = (char * )malloc(MAXFILENAME);
   char *varlines = (char * )malloc(500);
+  char *imports = (char *) malloc(500);
 
   assingvariables(sut, vars, varlines);
   makeDependencieinjection(sut, vars, dependencies);
+  makeimport(vars, imports);
 
-  sprintf(dest, "describe('%s', () => {\n%s\n  beforeAll(() => {\n   %s\n  }); \n});", sut, varlines, dependencies);
+  sprintf(dest, "%s\n\ndescribe('%s', () => {\n%s\n  beforeAll(() => {\n   %s\n  }); \n});", imports, sut, varlines, dependencies);
 }
 
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
@@ -265,7 +317,7 @@ void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
 
 void makeinterface(char *varname, char *dest) {
   sprintf(dest, "I%s", varname);
-  if (dest[1] >= 'a' && dest[1] <= 'Z') 
+  if (dest[1] >= 'a' && dest[1] <= 'z') 
     dest[1] = dest[1] - ('a' - 'A');
   
 }
@@ -292,42 +344,48 @@ void getdependencies(char *constructorlines[], Variables* destVar[]) {
     char *name = (char *)malloc(MAXCONSTRUCTORSIZELINES);
 
     if (strstr(constructorlines[i], "Repository")){
-      getvariablename(constructorlines[++i], name);
+      if (strstr(constructorlines[i], "Inject")) i++;
+      getvariablename(constructorlines[i], name);
       (*destVar) -> type = "repository"; 
       (*destVar) -> name = name;
       *destVar++;
     }
 
     else if (strstr(constructorlines[i], "UseCase")) {
-      getvariablename(constructorlines[++i], name);
+      if (strstr(constructorlines[i], "Inject")) i++;
+      getvariablename(constructorlines[i], name);
       (*destVar) -> type = "service"; 
       (*destVar) -> name = name;
       *destVar++;
     }
 
     else if (strstr(constructorlines[i], "Format")) {
-      getvariablename(constructorlines[++i], name);
+      if (strstr(constructorlines[i], "Inject")) i++;
+      getvariablename(constructorlines[i], name);
       (*destVar) -> type = "helper"; 
       (*destVar) -> name = name;
       *destVar++;
     }
 
     else if (strstr(constructorlines[i], "Verify")) {
-      getvariablename(constructorlines[++i], name);
+      if (strstr(constructorlines[i], "Inject")) i++;
+      getvariablename(constructorlines[i], name);
       (*destVar) -> type = "helper"; 
       (*destVar) -> name = name;
       *destVar++;
     }
 
     else if (strstr(constructorlines[i], "Factory")) {
-      getvariablename(constructorlines[++i], name);
+      if (strstr(constructorlines[i], "Inject")) i++;
+      getvariablename(constructorlines[i], name);
       (*destVar) -> type = "factory"; 
       (*destVar) -> name = name;
       *destVar++;
     }
 
     else if (strstr(constructorlines[i], "Helper")) {
-      getvariablename(constructorlines[++i], name);
+      if (strstr(constructorlines[i], "Inject")) i++;
+      getvariablename(constructorlines[i], name);
       (*destVar) -> type = "helper"; 
       (*destVar) -> name = name;
       *destVar++;
@@ -372,6 +430,7 @@ void buildCommand(char *arg, char *dest) {
 void execCommand(char * command, char *dest) {
   FILE *fp;
   int c;
+
   if ((fp = popen(command, "r")) == NULL) {
     fprintf(stderr, "Faild to run command\n");
     return;
