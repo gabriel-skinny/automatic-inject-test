@@ -213,7 +213,7 @@ void instanciatingvars(Variables *vars[], char *dest) {
     strcpy(class, (*vars) -> name);
     class[0] = class[0] - ('a' - 'A');
 
-    sprintf(temp, "  %s = new %s();\n", (*vars++) -> name, class);
+    sprintf(temp, "     %s = new %s();\n", (*vars++) -> name, class);
     strcat(dest, temp);
   }
 }
@@ -278,7 +278,7 @@ void maketestsuit(char* sut, Variables *vars[], char *dest) {
   makeDependencieinjection(sut, vars, dependencies);
   makeimport(vars, imports);
 
-  sprintf(dest, "%s\n\ndescribe('%s', () => {\n%s\n  beforeAll(() => {\n   %s\n %s\n  }); \n});", imports, sut, varlines, classes, dependencies);
+  sprintf(dest, "%s\n\ndescribe('%s', () => {\n%s\n  beforeAll(() => {\n%s\n     %s\n  }); \n});", imports, sut, varlines, classes, dependencies);
 }
 
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
