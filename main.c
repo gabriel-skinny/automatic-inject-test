@@ -43,7 +43,7 @@ void writetestinfile(char *testsuit, char *sutfilepath, char*sut);
 void makeimport(Variables *vars[], char *dest);
 void findpathforvar(char *name, char *dest);
 void instanciatingvars(Variables *vars[], char *dest);
-
+void creatingspyclass(Variables *vars[], char *dest);
 
 
 int main(int argc, char *argv[]) {
@@ -183,10 +183,12 @@ void getSut(char *filecontent, char *sut) {
 }
 
 void makeDependencieinjection(char *sut, Variables *vars[], char *dest) {
-  char *alldependencies = (char *)malloc(200);
+  char *alldependencies = (char *) malloc(300);
   formatDependencies(vars, alldependencies);
 
   sprintf(dest, "sut = new %s(%s);", sut, alldependencies);
+
+  free(alldependencies);
 }
 
 void typingvariables(char *sut, Variables *vars[], char *dest) {
@@ -206,6 +208,28 @@ void typingvariables(char *sut, Variables *vars[], char *dest) {
   }
 }
 
+void creatingspyclass(Variables *vars[], char *dest) {
+  while((*vars) -> name != NULL) {
+    char *temp = (char *) malloc(MAXVARNAME); 
+    char *interface = (char *) malloc(MAXVARNAME);
+    char *class = (char *) malloc(MAXVARNAME);
+
+    strcpy(class, (*vars) -> name);
+    class[0] = class[0] - ('a' - 'A');
+
+    makeinterface((*vars) -> name, interface);
+
+    sprintf(temp, "class %sSpy implements %s {};\n\n", class, interface);
+    strcat(dest, temp);
+
+    free(temp);
+    free(class),
+    free(interface);
+
+    *vars++;
+  }
+}
+
 void instanciatingvars(Variables *vars[], char *dest) { 
   while ((*vars) -> name != NULL) {
     char *temp = (char *) malloc(MAXVARNAME);
@@ -213,8 +237,11 @@ void instanciatingvars(Variables *vars[], char *dest) {
     strcpy(class, (*vars) -> name);
     class[0] = class[0] - ('a' - 'A');
 
-    sprintf(temp, "     %s = new %s();\n", (*vars++) -> name, class);
+    sprintf(temp, "     %s = new %sSpy();\n", (*vars++) -> name, class);
     strcat(dest, temp);
+
+    free(temp);
+    free(class);
   }
 }
 
@@ -263,7 +290,6 @@ void findpathforvar(char *name, char *dest) {
       break;
     }
   }
-   
 }
 
 void maketestsuit(char* sut, Variables *vars[], char *dest) {
@@ -271,14 +297,15 @@ void maketestsuit(char* sut, Variables *vars[], char *dest) {
   char *classes = (char *) malloc(500);
   char *varlines = (char * )malloc(500);
   char *imports = (char *) malloc(500);
-
+  char *spyclasses = (char * )malloc(500);
 
   typingvariables(sut, vars, varlines);
   instanciatingvars(vars, classes);
+  creatingspyclass(vars, spyclasses);
   makeDependencieinjection(sut, vars, dependencies);
   makeimport(vars, imports);
 
-  sprintf(dest, "%s\n\ndescribe('%s', () => {\n%s\n  beforeAll(() => {\n%s\n     %s\n  }); \n});", imports, sut, varlines, classes, dependencies);
+  sprintf(dest, "%s\n\n%s\n\ndescribe('%s', () => {\n%s\n  beforeAll(() => {\n%s\n     %s\n  }); \n});", imports, spyclasses, sut, varlines, classes, dependencies);
 }
 
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
@@ -339,11 +366,7 @@ void makeinterface(char *varname, char *dest) {
 }
 
 void formatDependencies(Variables *vars[], char *dest) {
-  while((*vars) -> name != NULL) {
-   /*  char *classCapitalized = (char *) malloc(100);
-    strcpy(classCapitalized, (*vars) -> name);
-    classCapitalized[0] = classCapitalized[0] - ('a' - 'A');   */
-    
+  while((*vars) -> name != NULL) {    
     char *formated = (char *) malloc(100);
 
     sprintf(formated, "%s,", (*vars) -> name);
