@@ -42,6 +42,7 @@ void maketestsuit(char* sut, Variables *vars[], char *dest);
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut);
 void makeimport(Variables *vars[], char *dest);
 void findpathforvar(char *name, char *dest);
+void instanciatingvars(Variables *vars[], char *dest);
 
 
 
@@ -205,6 +206,18 @@ void typingvariables(char *sut, Variables *vars[], char *dest) {
   }
 }
 
+void instanciatingvars(Variables *vars[], char *dest) { 
+  while ((*vars) -> name != NULL) {
+    char *temp = (char *) malloc(MAXVARNAME);
+    char *class = (char *) malloc(MAXVARNAME);
+    strcpy(class, (*vars) -> name);
+    class[0] = class[0] - ('a' - 'A');
+
+    sprintf(temp, "  %s = new %s();\n", (*vars++) -> name, class);
+    strcat(dest, temp);
+  }
+}
+
 void makeimport(Variables *vars[], char *dest) {
   while((*vars) -> name != NULL) {
     char *import = (char *) malloc(MAXFILEPATH);
@@ -255,14 +268,17 @@ void findpathforvar(char *name, char *dest) {
 
 void maketestsuit(char* sut, Variables *vars[], char *dest) {
   char *dependencies = (char * )malloc(MAXFILENAME);
+  char *classes = (char *) malloc(500);
   char *varlines = (char * )malloc(500);
   char *imports = (char *) malloc(500);
 
+
   typingvariables(sut, vars, varlines);
+  instanciatingvars(vars, classes);
   makeDependencieinjection(sut, vars, dependencies);
   makeimport(vars, imports);
 
-  sprintf(dest, "%s\n\ndescribe('%s', () => {\n%s\n  beforeAll(() => {\n   %s\n  }); \n});", imports, sut, varlines, dependencies);
+  sprintf(dest, "%s\n\ndescribe('%s', () => {\n%s\n  beforeAll(() => {\n   %s\n %s\n  }); \n});", imports, sut, varlines, classes, dependencies);
 }
 
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
