@@ -36,7 +36,7 @@ void allocarrayofstrucvar(Variables *argv[]);
 void getSut(char *filecontent, char *sut);
 void makeDependencieinjection(char *sut, Variables *vars[], char *dest);
 void formatDependencies(Variables *vars[], char *dest);
-void assingvariables(char *sut, Variables *vars[], char *dest);
+void typingvariables(char *sut, Variables *vars[], char *dest);
 void makeinterface(char *varname, char *dest);
 void maketestsuit(char* sut, Variables *vars[], char *dest);
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut);
@@ -188,7 +188,7 @@ void makeDependencieinjection(char *sut, Variables *vars[], char *dest) {
   sprintf(dest, "sut = new %s(%s);", sut, alldependencies);
 }
 
-void assingvariables(char *sut, Variables *vars[], char *dest) {
+void typingvariables(char *sut, Variables *vars[], char *dest) {
   char *temp = (char *) malloc(MAXVARNAME);
 
   char *sutinterface = (char *) malloc(MAXVARNAME);
@@ -200,7 +200,7 @@ void assingvariables(char *sut, Variables *vars[], char *dest) {
     char *interface = (char *) malloc(MAXVARNAME);
     makeinterface((*vars) -> name, interface);
 
-    sprintf(temp, "  let %s: %s = new %s();\n", (*vars++) -> name, interface, (*vars) -> name);
+    sprintf(temp, "  let %s: %s;\n", (*vars++) -> name, interface);
     strcat(dest, temp);
   }
 }
@@ -258,7 +258,7 @@ void maketestsuit(char* sut, Variables *vars[], char *dest) {
   char *varlines = (char * )malloc(500);
   char *imports = (char *) malloc(500);
 
-  assingvariables(sut, vars, varlines);
+  typingvariables(sut, vars, varlines);
   makeDependencieinjection(sut, vars, dependencies);
   makeimport(vars, imports);
 
