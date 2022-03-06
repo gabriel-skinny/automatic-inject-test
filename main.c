@@ -26,11 +26,9 @@ typedef struct {
 } Variables;
 
 void readfile(char * filename, char * varname, char * varfilecontent,  char *destfilepath);
-void strcatwithspace(char *dest, char *src);
 void execCommand(char *command, char *dest);
 void chosefilepath(char *filepaths[], int npaths, char *dest);
 void buildCommand(char *args, char *dest);
-void superstrcat(char *dest, char *argv[], int n);
 void getcontructorlines(char *filecontent, char *dest[]);
 void allocarrayofpointer(char *arg[], int size, int stringsize);
 void freearrayofpointer(char *arg[], int size);
@@ -45,7 +43,6 @@ void makeinterface(char *varname, char *dest);
 void maketestsuit(char* sut, Variables *vars[], char *dest, char* filecontent);
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut);
 void makeimport(char *filecontent, Variables *vars[], char *dest);
-void findpathforvar(char *name, char *dest);
 void instanciatingvars(Variables *vars[], char *dest);
 void creatingspyclass(Variables *vars[], char *dest);
 
@@ -251,11 +248,8 @@ void instanciatingvars(Variables *vars[], char *dest) {
 
 void makeimport(char *filecontent, Variables *vars[], char *dest) {
   while((*vars) -> name != NULL) {
-    char *interface = (char *) malloc(MAXVARNAME);
     char *import = (char *) malloc(100);
     int i, c;
-
-    makeinterface((*vars) -> name, interface);
 
     for (i = 0; i < strlen(filecontent); i++) {
       c = 0;
@@ -267,42 +261,14 @@ void makeimport(char *filecontent, Variables *vars[], char *dest) {
       import[c++] = '\n';
       import[c] = '\0';
 
-      if (strstr(import, interface)) break;
+      
+      if (strstr(import, (*vars) -> interface)) break;
     }
-   
+
     strcat(dest, import);
-    
     free(import);
 
     *vars++;
-  }
-}
-
-void findpathforvar(char *name, char *dest) {
-  char *base_src = "/src/";
-  int limit;
-  char *command = (char *) malloc(MAXVARNAME);
-  char *rigth_path = (char *) malloc(MAXFILEPATH);
-
-  buildCommand(name, command);
-  execCommand(command, rigth_path);
-  
-  printf("\nPaths: %s", rigth_path);
-
-  limit = 0;
-
-  
-  while(*rigth_path != '\0') {
-    if (*rigth_path++ == base_src[limit])
-      limit++;
-    else limit = 0;
-    if (limit == strlen(base_src)) {
-      while(*rigth_path != '\0')
-        *dest++ = *rigth_path++;
-
-      *dest = '\0';
-      break;
-    }
   }
 }
 
@@ -547,22 +513,6 @@ void chosefilepath(char *filepaths[], int npaths, char *dest) {
   scanf("%i", &filechosen);
 
   strcpy(dest, filepaths[filechosen]);
-}
-
-void superstrcat(char *dest, char **argv, int n) {
-  while (n-- > 0) 
-    strcatwithspace(dest, *argv++);
-}
-
-void strcatwithspace(char *dest, char *s) {
-  while(*dest++ != '\0')
-    if (*dest == '\0') {
-      *dest++ = ' ';
-      while(*s)
-        *dest++ = *s++;
-    }
-    *dest++ = ' ';
-    *dest = '\0';
 }
 
 void allocarrayofpointer(char *arg[], int size, int stringsize) {
