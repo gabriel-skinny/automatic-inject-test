@@ -12,6 +12,7 @@
 #define MAXFILENAME 100
 #define MAXFILEBUFFER 1500
 #define MAXCONSTRUCTORLINES 20
+#define MAXFILEFINDS 25
 #define MAXCONSTRUCTORSIZELINES 100
 #define MAXVAR 10
 #define MAXVARNAME 200
@@ -26,10 +27,12 @@ typedef struct {
 void readfile(char * filename, char * varname, char * varfilecontent,  char *destfilepath);
 void strcatwithspace(char *dest, char *src);
 void execCommand(char *command, char *dest);
+void chosefilepath(char *filepaths[], int npaths, char *dest);
 void buildCommand(char *args, char *dest);
 void superstrcat(char *dest, char *argv[], int n);
 void getcontructorlines(char *filecontent, char *dest[]);
-void allocarrayofpointer(char *arg[]);
+void allocarrayofpointer(char *arg[], int size, int stringsize);
+void freearrayofpointer(char *arg[], int size);
 void getdependencies(char *constructorlines[], Variables* destVar[]);
 void getvariablename(char *variableLine, char *destname);
 void allocarrayofstrucvar(Variables *argv[]);
@@ -57,7 +60,7 @@ int main(int argc, char *argv[]) {
   Variables *vars[MAXVAR];
 
   allocarrayofstrucvar(vars);
-  allocarrayofpointer(constructorlines);
+  allocarrayofpointer(constructorlines, MAXCONSTRUCTORLINES, MAXCONSTRUCTORSIZELINES);
 
   if (argc < 2) {
     fprintf(stderr, "At least one arguments has to be provided");
@@ -97,7 +100,7 @@ void readfile(char * filename, char * globalfilename, char *filecontent, char *d
   strcpy(destfilepath,filepath);
 
   if((fd = open(filepath, 'r')) == -1) {
-    fprintf(stderr, "File not found");
+    fprintf(stderr, "\nCould not read file: %s\n", strerror(errno));
     exit(1);
   }
 
@@ -273,7 +276,8 @@ void findpathforvar(char *name, char *dest) {
 
   buildCommand(name, command);
   execCommand(command, rigth_path);
-  printf("\n Path: %s\n", rigth_path);
+  
+  printf("\nPaths: %s", rigth_path);
 
   limit = 0;
 
@@ -293,7 +297,7 @@ void findpathforvar(char *name, char *dest) {
 }
 
 void maketestsuit(char* sut, Variables *vars[], char *dest) {
-  char *dependencies = (char * )malloc(MAXFILENAME);
+  char *dependencies = (char * )malloc(500);
   char *classes = (char *) malloc(500);
   char *varlines = (char * )malloc(500);
   char *imports = (char *) malloc(500);
@@ -468,20 +472,53 @@ void buildCommand(char *arg, char *dest) {
 
 void execCommand(char * command, char *dest) {
   FILE *fp;
-  int c;
+  int c, npaths;
+  char *filepaths[MAXFILEFINDS];
+  allocarrayofpointer(filepaths, MAXFILEFINDS, MAXFILEPATH * sizeof(char));
 
   if ((fp = popen(command, "r")) == NULL) {
     fprintf(stderr, "Faild to run command\n");
     return;
   }
 
-  while((c = fgetc(fp)) != EOF && c != '\n') {
-    *dest++ = c; 
+  npaths = 0;
+
+  for(int i = 0; (c = fgetc(fp)) != EOF; i++) {
+    if (c == '\n') {
+      filepaths[npaths++][i] = '\0';
+      i = -1;
+    }
+    else 
+      filepaths[npaths][i] = c;     
+      
   };
 
+  chosefilepath(filepaths, npaths, dest);
+  
+  freearrayofpointer(filepaths, MAXVAR);
   pclose(fp);
   
   return;
+}
+
+void chosefilepath(char *filepaths[], int npaths, char *dest) {
+  if (npaths == 1) {
+    strcpy(dest, filepaths[npaths]);
+  
+    return;
+  }
+
+  int filechosen, i;
+
+  printf("\nMore than one file was found\n");
+  printf("Chose one: \n");
+  for (i = 0; i < npaths; i++) {
+    printf(" [%d]-%s\n", i, filepaths[i]);
+  }
+  
+  scanf("%i", &filechosen);
+
+  strcpy(dest, filepaths[filechosen]);
 }
 
 void superstrcat(char *dest, char **argv, int n) {
@@ -500,9 +537,14 @@ void strcatwithspace(char *dest, char *s) {
     *dest = '\0';
 }
 
-void allocarrayofpointer(char *arg[]) {
-  for (int i = 0; i < MAXCONSTRUCTORLINES; i++) 
-    arg[i] = (char *) malloc(MAXCONSTRUCTORSIZELINES);
+void allocarrayofpointer(char *arg[], int size, int stringsize) {
+  for (int i = 0; i < size; i++) 
+    arg[i] = (char *) malloc(stringsize);
+}
+
+void freearrayofpointer(char *arg[], int size) {
+  for (int i = 0; i < size; i++) 
+    free(arg[i]);
 }
 
 void allocarrayofstrucvar(Variables *arg[]){
