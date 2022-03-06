@@ -41,9 +41,9 @@ void makeDependencieinjection(char *sut, Variables *vars[], char *dest);
 void formatDependencies(Variables *vars[], char *dest);
 void typingvariables(char *sut, Variables *vars[], char *dest);
 void makeinterface(char *varname, char *dest);
-void maketestsuit(char* sut, Variables *vars[], char *dest);
+void maketestsuit(char* sut, Variables *vars[], char *dest, char* filecontent);
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut);
-void makeimport(Variables *vars[], char *dest);
+void makeimport(char *filecontent, Variables *vars[], char *dest);
 void findpathforvar(char *name, char *dest);
 void instanciatingvars(Variables *vars[], char *dest);
 void creatingspyclass(Variables *vars[], char *dest);
@@ -81,7 +81,7 @@ int main(int argc, char *argv[]) {
 
   printf("\nSut is: %s \n", sut);
 
-  maketestsuit(sut, vars, testsuit);
+  maketestsuit(sut, vars, testsuit, filecontent);
   writetestinfile(testsuit, filepath, sut);
 
   printf("\n\n\n");
@@ -248,21 +248,33 @@ void instanciatingvars(Variables *vars[], char *dest) {
   }
 }
 
-void makeimport(Variables *vars[], char *dest) {
+void makeimport(char *filecontent, Variables *vars[], char *dest) {
   while((*vars) -> name != NULL) {
-    char *import = (char *) malloc(MAXFILEPATH);
     char *interface = (char *) malloc(MAXVARNAME);
-    char *pathtointerface = (char *) malloc(MAXFILEPATH);
+    char *import = (char *) malloc(1000);
+    int i, c;
 
     makeinterface((*vars) -> name, interface);
-    findpathforvar((*vars) -> name, pathtointerface);
+    printf("\nNow the file interface: %s\n", interface);
 
-    sprintf(import, "import { %s } from 'src/%s';\n", interface, pathtointerface);
+    for (i = 0; i < strlen(filecontent); i++) {
+      c = 0;
+      
+      while(filecontent[i] != '\n') {
+        
+        import[c++] = filecontent[i++];
+      }
+      import[c++] = '\n';
+      import[c] = '\0';
+
+      if (strstr(import, interface)) break;
+    }
+
+    printf("\nWritten %d\n", c);
+   
     strcat(dest, import);
-
+    
     free(import);
-    free(interface);
-    free(pathtointerface);
 
     *vars++;
   }
@@ -296,20 +308,26 @@ void findpathforvar(char *name, char *dest) {
   }
 }
 
-void maketestsuit(char* sut, Variables *vars[], char *dest) {
+void maketestsuit(char* sut, Variables *vars[], char *dest, char* filecontent) {
   char *dependencies = (char * )malloc(500);
   char *classes = (char *) malloc(500);
   char *varlines = (char * )malloc(500);
-  char *imports = (char *) malloc(500);
+  char *imports = (char *) malloc(1500);
   char *spyclasses = (char * )malloc(500);
 
   typingvariables(sut, vars, varlines);
   instanciatingvars(vars, classes);
   creatingspyclass(vars, spyclasses);
   makeDependencieinjection(sut, vars, dependencies);
-  makeimport(vars, imports);
+  makeimport(filecontent, vars, imports);
 
   sprintf(dest, "%s\n\n%s\n\ndescribe('%s', () => {\n%s\n  beforeAll(() => {\n%s\n     %s\n  }); \n});", imports, spyclasses, sut, varlines, classes, dependencies);
+
+  free(dependencies);
+  free(classes);
+  free(varlines);
+  free(imports);
+  free(spyclasses);
 }
 
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
@@ -463,7 +481,7 @@ void getvariablename(char *variableLine, char *destname) {
 }
 
 void buildCommand(char *arg, char *dest) {
-  char baseCommand[150] = "/bin/find ";
+  char baseCommand[150] = "/bin/find";
   char pipe[] = "|";
   char endGrepCommand[] = "/bin/grep -i";
 
