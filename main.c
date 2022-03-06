@@ -22,6 +22,7 @@
 typedef struct {
   char *type;
   char *name;
+  char *interface;
 } Variables;
 
 void readfile(char * filename, char * varname, char * varfilecontent,  char *destfilepath);
@@ -34,7 +35,7 @@ void getcontructorlines(char *filecontent, char *dest[]);
 void allocarrayofpointer(char *arg[], int size, int stringsize);
 void freearrayofpointer(char *arg[], int size);
 void getdependencies(char *constructorlines[], Variables* destVar[]);
-void getvariablename(char *variableLine, char *destname);
+void getclassnameandtype(char *variableLine, char *destname, char *destinterface);
 void allocarrayofstrucvar(Variables *argv[]);
 void getSut(char *filecontent, char *sut);
 void makeDependencieinjection(char *sut, Variables *vars[], char *dest);
@@ -251,11 +252,10 @@ void instanciatingvars(Variables *vars[], char *dest) {
 void makeimport(char *filecontent, Variables *vars[], char *dest) {
   while((*vars) -> name != NULL) {
     char *interface = (char *) malloc(MAXVARNAME);
-    char *import = (char *) malloc(1000);
+    char *import = (char *) malloc(100);
     int i, c;
 
     makeinterface((*vars) -> name, interface);
-    printf("\nNow the file interface: %s\n", interface);
 
     for (i = 0; i < strlen(filecontent); i++) {
       c = 0;
@@ -269,8 +269,6 @@ void makeimport(char *filecontent, Variables *vars[], char *dest) {
 
       if (strstr(import, interface)) break;
     }
-
-    printf("\nWritten %d\n", c);
    
     strcat(dest, import);
     
@@ -312,7 +310,7 @@ void maketestsuit(char* sut, Variables *vars[], char *dest, char* filecontent) {
   char *dependencies = (char * )malloc(500);
   char *classes = (char *) malloc(500);
   char *varlines = (char * )malloc(500);
-  char *imports = (char *) malloc(1500);
+  char *imports = (char *) malloc(500);
   char *spyclasses = (char * )malloc(500);
 
   typingvariables(sut, vars, varlines);
@@ -403,58 +401,65 @@ void formatDependencies(Variables *vars[], char *dest) {
 void getdependencies(char *constructorlines[], Variables* destVar[]) {
   for (int i = 0; i < MAXCONSTRUCTORLINES && constructorlines[i]; i++){
     char *name = (char *)malloc(MAXCONSTRUCTORSIZELINES);
+    char *interface = (char *)malloc(MAXCONSTRUCTORSIZELINES);
 
     if (strstr(constructorlines[i], "Repository")){
       if (strstr(constructorlines[i], "Inject")) i++;
-      getvariablename(constructorlines[i], name);
+      getclassnameandtype(constructorlines[i], name, interface);
       (*destVar) -> type = "repository"; 
       (*destVar) -> name = name;
+      (*destVar) -> interface = interface;
       *destVar++;
     }
 
     else if (strstr(constructorlines[i], "UseCase")) {
       if (strstr(constructorlines[i], "Inject")) i++;
-      getvariablename(constructorlines[i], name);
+      getclassnameandtype(constructorlines[i], name, interface);
       (*destVar) -> type = "service"; 
       (*destVar) -> name = name;
+      (*destVar) -> interface = interface;
       *destVar++;
     }
 
     else if (strstr(constructorlines[i], "Format")) {
       if (strstr(constructorlines[i], "Inject")) i++;
-      getvariablename(constructorlines[i], name);
+      getclassnameandtype(constructorlines[i], name, interface);
       (*destVar) -> type = "helper"; 
       (*destVar) -> name = name;
+      (*destVar) -> interface = interface;
       *destVar++;
     }
 
     else if (strstr(constructorlines[i], "Verify")) {
       if (strstr(constructorlines[i], "Inject")) i++;
-      getvariablename(constructorlines[i], name);
+      getclassnameandtype(constructorlines[i], name, interface);
       (*destVar) -> type = "helper"; 
       (*destVar) -> name = name;
+      (*destVar) -> interface = interface;
       *destVar++;
     }
 
     else if (strstr(constructorlines[i], "Factory")) {
       if (strstr(constructorlines[i], "Inject")) i++;
-      getvariablename(constructorlines[i], name);
+      getclassnameandtype(constructorlines[i], name, interface);
       (*destVar) -> type = "factory"; 
       (*destVar) -> name = name;
+      (*destVar) -> interface = interface;
       *destVar++;
     }
 
     else if (strstr(constructorlines[i], "Helper")) {
       if (strstr(constructorlines[i], "Inject")) i++;
-      getvariablename(constructorlines[i], name);
+      getclassnameandtype(constructorlines[i], name, interface);
       (*destVar) -> type = "helper"; 
       (*destVar) -> name = name;
+      (*destVar) -> interface = interface;
       *destVar++;
     }
   }
 }
 
-void getvariablename(char *variableLine, char *destname) {
+void getclassnameandtype(char *variableLine, char *destname, char *destinterface) {
   char *limit = (char *) malloc(20);
   int limitCount = 0;
  
@@ -473,6 +478,11 @@ void getvariablename(char *variableLine, char *destname) {
         *destname++ = variableLine[++i];
       
       *--destname = '\0';
+
+      while(variableLine[i] != ',') 
+        *destinterface++ = variableLine[++i];
+      
+      *--destinterface = '\0';
       break;
     }
   }
