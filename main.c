@@ -509,6 +509,7 @@ void chosefilepath(char *filepaths[], int npaths, char *dest) {
   printf("\nMore than one file was found\n");
   printf("Chose one: \n");
   for (i = 0; i < npaths; i++) {
+    filepaths[i]+= strlen(BASE_PATH) + 1;
     printf(" [%d]-%s\n", i, filepaths[i]);
   }
   
