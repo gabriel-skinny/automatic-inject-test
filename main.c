@@ -206,7 +206,11 @@ void typingvariables(char *sut, Variables *vars[], char *dest) {
 
     sprintf(temp, "  let %s: %s;\n", (*vars++) -> name, interface);
     strcat(dest, temp);
+
+    free(interface);
   }
+
+  free(temp);
 }
 
 void creatingspyclass(Variables *vars[], char *dest) {
