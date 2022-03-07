@@ -17,5 +17,7 @@ A CLI program that gets a file name and inject all needed dependencies to test a
   - Flag to not build a spy class
   - If a test file is already created with that name it should throw an error
   - Filter files founded with grep to show only classes(Ex: do not show files that have protocol folder in their path or ends with spec.ts)
+  - Make import of sut and sut interface
+  - Get sut interface from implements rather than just changing sut name
    
  
