@@ -9,7 +9,7 @@ A CLI program that gets a file name and inject all needed dependencies to test a
 ## How it works
   - Find the file using unix find command in the base src folder and uses grep to search for the specific file, if it has multiple finds you can chose wich one do you wanna test. The file name does not need to be case sensitive.
   - Reads the file 
-  - It analizes the constructor of the file passed and creates a jest like suit, injecting all the depedencies and creating typed variables.
+  - It analizes the constructor of the file passed and creates a jest like suit, injecting all the depedencies and creating typed variables and imports for all of them.
   - It creates a test file under /tests based on your sut file path 
 
 ## Features to implement
