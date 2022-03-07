@@ -14,7 +14,7 @@
 #define MAXCONSTRUCTORLINES 20
 #define MAXFILEFINDS 25
 #define MAXCONSTRUCTORSIZELINES 200
-#define MAXVAR 10
+#define MAXVAR 20
 #define MAXVARNAME 400
 #define MAXFILEPATH 200
 #define MAXTESTSUITSIZE 2000
@@ -295,24 +295,24 @@ void maketestsuit(char* sut, Variables *vars[], char *dest, char* filecontent) {
 }
 
 void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
-  int fd, len;
-  char *testfilepath = (char *) malloc(MAXVARNAME);
-  char *testpath = (char *) malloc(MAXVARNAME);
-  char *pointertotest = testpath;
+  int fd, len, c;
+  char testfilepath[MAXVARNAME];
+  char testpath[MAXVARNAME];
   unsigned int mode = 00777;
 
   len = strlen(sutfilepath);
-
+  c = 0;
   while(sutfilepath[--len]) {
     if (sutfilepath[len] == '/') {
-       sutfilepath[len] = '\0';
-      while(*sutfilepath != '\0') 
-        *pointertotest = *sutfilepath++;
-
-    break;
+      sutfilepath[len] = '\0';
+      
+      while(*sutfilepath != '\0')
+        testpath[c++] = *sutfilepath++;
+      
+      testpath[c] = '\0';
+      break;
     }
   }
-
   sut[strlen(sut) -1] = '\0';
   
   sprintf(testpath, "%s/tests", testpath);
@@ -455,7 +455,7 @@ void getclassnameandtype(char *variableLine, char *destname, char *destinterface
     }
   }
 
-  
+  /* free(limit); */
 }
 
 void buildCommand(char *arg, char *dest) {
@@ -508,9 +508,10 @@ void chosefilepath(char *filepaths[], int npaths, char *dest) {
 
   printf("\nMore than one file was found\n");
   printf("Chose one: \n");
+
   for (i = 0; i < npaths; i++) {
-    filepaths[i]+= strlen(BASE_PATH) + 1;
-    printf(" [%d]-%s\n", i, filepaths[i]);
+    char *fileprint = filepaths[i] + strlen(BASE_PATH) + 1 ; 
+    printf(" [%d] - %s\n", i, fileprint);
   }
   
   scanf("%i", &filechosen);
