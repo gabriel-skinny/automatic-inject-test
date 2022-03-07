@@ -9,15 +9,15 @@
 #include <errno.h>
 #include <sys/stat.h>
 
-#define MAXFILENAME 100
+#define MAXFILENAME 200
 #define MAXFILEBUFFER 1500
 #define MAXCONSTRUCTORLINES 20
 #define MAXFILEFINDS 25
-#define MAXCONSTRUCTORSIZELINES 100
+#define MAXCONSTRUCTORSIZELINES 200
 #define MAXVAR 10
-#define MAXVARNAME 200
+#define MAXVARNAME 400
 #define MAXFILEPATH 200
-#define MAXTESTSUITSIZE 1200
+#define MAXTESTSUITSIZE 2000
 
 typedef struct {
   char *type;
@@ -307,13 +307,15 @@ void writetestinfile(char *testsuit, char *sutfilepath, char*sut) {
     if (sutfilepath[len] == '/') {
        sutfilepath[len] = '\0';
       while(*sutfilepath != '\0') 
-        *pointertotest++ = *sutfilepath++;
+        *pointertotest = *sutfilepath++;
+
     break;
     }
   }
 
   sut[strlen(sut) -1] = '\0';
-  sprintf(testpath, "%s/tests", testpath, sut);
+  
+  sprintf(testpath, "%s/tests", testpath);
   sprintf(testfilepath, "%s/%s.spec.ts", testpath, sut);
 
   retry:
