@@ -201,13 +201,9 @@ void typingvariables(char *sut, Variables *vars[], char *dest) {
   strcat(dest, temp);
 
   while ((*vars) -> name != NULL) {
-    char *interface = (char *) malloc(MAXVARNAME);
-    makeinterface((*vars) -> name, interface);
-
-    sprintf(temp, "  let %s: %s;\n", (*vars++) -> name, interface);
+    sprintf(temp, "  let %s: %s;\n", (*vars) -> name, (*vars++) -> interface);
     strcat(dest, temp);
 
-    free(interface);
   }
 
   free(temp);
