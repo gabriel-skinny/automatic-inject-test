@@ -1,5 +1,5 @@
 # automatic-inject-test
-A CLI program that gets a file name and inject all needed dependencies to test a class in a respective test file.
+A CLI program that gets a file name and inject all needed dependencies to test a class in a respective test file
 
 ## How to use it
   - First you need to edit the config.h file and set the base_path to your project src folder.
